@@ -112,10 +112,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_sequential.py configs/bevdet/bevdet-r50-4d-depth-cbgs.py "/mnt/cfs/algorithm/junjie.huang/project/dev/BEVDet/work_dirs/bevdet4d-r50-depth59-cbgs-tse2-111-onehead-lwx6/epoch_20_ema.pth"
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark.py configs/bevdet/bevdet-r50-cbgs.py "/mnt/cfs/algorithm/junjie.huang/project/dev/BEVDet/work_dirs/bevdet-r50-cbgs-onehead-n256-vt64/epoch_20_ema.pth"
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark.py configs/bevdet/bevdet-r50.py "/mnt/cfs/algorithm/junjie.huang/project/check/BEVDetv0/work_dirs/bevdet-r50-cbgs/epoch_20_ema.pth"
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_trt.py configs/bevdet/bevdet-r50.py "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/bevdet_fp16.engine"
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_trt.py configs/bevdet/bevdet4d-r50-depth-longterm-cbgs.py  "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet/work_dirs/bevdet4d-r50-depth-longterm-cbgs/epoch_18_ema.pth" --fuse-conv-bn
-# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_sequential.py configs/bevdet/bevdet-r50-4d-cbgs.py  "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet/work_dirs/bevdet4d-r50-cbgs-111/epoch_20_ema.pth" --fuse-conv-bn
-
