@@ -28,6 +28,11 @@ def parse_args():
     parser.add_argument('engine', help='checkpoint file')
     parser.add_argument('--samples', default=500, help='samples to benchmark')
     parser.add_argument('--postprocessing', action='store_true')
+    parser.add_argument('--eval', action='store_true')
+    parser.add_argument('--prefetch', action='store_true',
+                        help='use prefetch to accelerate the data loading, '
+                             'the inference speed is sightly degenerated due '
+                             'to the computational occupancy of prefetch')
     args = parser.parse_args()
     return args
 
@@ -111,11 +116,18 @@ def main():
 
     args = parse_args()
 
+    if args.eval:
+        args.postprocessing=True
+        print('Warnings: evaluation requirement detected, set '
+              'postprocessing=True for evaluation purpose')
     cfg = Config.fromfile(args.config)
     cfg.model.pretrained = None
     cfg.model.type = cfg.model.type + 'TRT'
     cfg = compat_cfg(cfg)
     cfg.gpu_ids = [0]
+
+    if not args.prefetch:
+        cfg.data.test_dataloader.workers_per_gpu=0
 
     # build dataloader
     assert cfg.data.test.test_mode
@@ -133,7 +145,9 @@ def main():
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
 
     # build tensorrt model
-    trt_model = TRTWrapper(args.engine, [f'output_{i}' for i in range(36)])
+    trt_model = TRTWrapper(args.engine,
+                           [f'output_{i}' for i in
+                            range(6 * len(model.pts_bbox_head.task_heads))])
 
     num_warmup = 50
     pure_inf_time = 0
@@ -141,6 +155,7 @@ def main():
     init_ = True
     metas = dict()
     # benchmark with several samples and take the average
+    results = list()
     for i, data in enumerate(data_loader):
         if init_:
             inputs = [t.cuda() for t in data['img_inputs'][0]]
@@ -159,7 +174,8 @@ def main():
 
         # postprocessing
         if args.postprocessing:
-            trt_output = [trt_output[f'output_{i}'] for i in range(36)]
+            trt_output = [trt_output[f'output_{i}'] for i in
+                          range(6 * len(model.pts_bbox_head.task_heads))]
             pred = model.result_deserialize(trt_output)
             img_metas = [dict(box_type_3d=LiDARInstance3DBoxes)]
             bbox_list = model.pts_bbox_head.get_bboxes(
@@ -168,6 +184,8 @@ def main():
                 bbox3d2result(bboxes, scores, labels)
                 for bboxes, scores, labels in bbox_list
             ]
+            if args.eval:
+                results.append(bbox_results[0])
         torch.cuda.synchronize()
         elapsed = time.perf_counter() - start_time
 
@@ -176,14 +194,26 @@ def main():
             if (i + 1) % 50 == 0:
                 fps = (i + 1 - num_warmup) / pure_inf_time
                 print(f'Done image [{i + 1:<3}/ {args.samples}], '
-                      f'fps: {fps:.1f} img / s')
+                      f'fps: {fps:.2f} img / s')
 
         if (i + 1) == args.samples:
             pure_inf_time += elapsed
             fps = (i + 1 - num_warmup) / pure_inf_time
-            print(f'Overall \nfps: {fps:.1f} img / s '
-                  f'\ninference time: {1000/fps:.1f} ms')
-            return fps
+            print(f'Overall \nfps: {fps:.2f} img / s '
+                  f'\ninference time: {1000/fps:.2f} ms')
+            if not args.eval:
+                return
+
+    assert args.eval
+    eval_kwargs = cfg.get('evaluation', {}).copy()
+    # hard-code way to remove EvalHook args
+    for key in [
+        'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
+        'rule'
+    ]:
+        eval_kwargs.pop(key, None)
+    eval_kwargs.update(dict(metric=args.eval))
+    print(dataset.evaluate(results, **eval_kwargs))
 
 
 if __name__ == '__main__':

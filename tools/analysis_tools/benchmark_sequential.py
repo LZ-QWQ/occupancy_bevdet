@@ -48,7 +48,7 @@ def main():
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=1,
-        workers_per_gpu=cfg.data.workers_per_gpu,
+        workers_per_gpu=0,
         dist=False,
         shuffle=False)
 
@@ -105,9 +105,17 @@ def main():
         if (i + 1) == args.samples:
             pure_inf_time += elapsed
             fps = (i + 1 - num_warmup) / pure_inf_time
-            print(f'Overall fps: {fps:.1f} img / s')
+            print(f'Overall \nfps: {fps:.2f} img / s '
+                  f'\ninference time: {1000 / fps:.2f} ms')
             break
 
 
 if __name__ == '__main__':
     main()
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_sequential.py configs/bevdet/bevdet-r50-4d-depth-cbgs.py "/mnt/cfs/algorithm/junjie.huang/project/dev/BEVDet/work_dirs/bevdet4d-r50-depth59-cbgs-tse2-111-onehead-lwx6/epoch_20_ema.pth"
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark.py configs/bevdet/bevdet-r50-cbgs.py "/mnt/cfs/algorithm/junjie.huang/project/dev/BEVDet/work_dirs/bevdet-r50-cbgs-onehead-n256-vt64/epoch_20_ema.pth"
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark.py configs/bevdet/bevdet-r50.py "/mnt/cfs/algorithm/junjie.huang/project/check/BEVDetv0/work_dirs/bevdet-r50-cbgs/epoch_20_ema.pth"
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_trt.py configs/bevdet/bevdet-r50.py "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/bevdet_fp16.engine"
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_trt.py configs/bevdet/bevdet4d-r50-depth-longterm-cbgs.py  "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet/work_dirs/bevdet4d-r50-depth-longterm-cbgs/epoch_18_ema.pth" --fuse-conv-bn
+# cd /mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet && PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python tools/analysis_tools/benchmark_sequential.py configs/bevdet/bevdet-r50-4d-cbgs.py  "/mnt/cfs/algorithm/junjie.huang/project/dev2.1/BEVDet/work_dirs/bevdet4d-r50-cbgs-111/epoch_20_ema.pth" --fuse-conv-bn
+
