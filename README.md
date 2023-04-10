@@ -3,7 +3,7 @@
 ![Illustrating the performance of the proposed BEVDet on the nuScenes val set](./resources/nds-fps.png)
 
 ## News
-- **2023.01.12** Use single head for multi-class prediction.
+- **2023.04.10** Use single head for multi-class prediction.
 - **2023.01.12** Support TensorRT-INT8.
 - **2022.11.24** A new branch of bevdet codebase, dubbed dev2.0, is released. dev2.0 includes the following features:
 
