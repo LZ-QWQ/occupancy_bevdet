@@ -138,7 +138,8 @@ class NuScenesDataset(Custom3DDataset):
                  use_valid_flag=False,
                  img_info_prototype='mmcv',
                  multi_adj_frame_id_cfg=None,
-                 ego_cam='CAM_FRONT'):
+                 ego_cam='CAM_FRONT',
+                 stereo=False):
         self.load_interval = load_interval
         self.use_valid_flag = use_valid_flag
         super().__init__(
@@ -167,6 +168,7 @@ class NuScenesDataset(Custom3DDataset):
         self.img_info_prototype = img_info_prototype
         self.multi_adj_frame_id_cfg = multi_adj_frame_id_cfg
         self.ego_cam = ego_cam
+        self.stereo = stereo
 
     def get_cat_ids(self, idx):
         """Get category distribution of single scene.
@@ -277,7 +279,12 @@ class NuScenesDataset(Custom3DDataset):
 
     def get_adj_info(self, info, index):
         info_adj_list = []
-        for select_id in range(*self.multi_adj_frame_id_cfg):
+        adj_id_list = list(range(*self.multi_adj_frame_id_cfg))
+        if self.stereo:
+            assert self.multi_adj_frame_id_cfg[0] == 1
+            assert self.multi_adj_frame_id_cfg[2] == 1
+            adj_id_list.append(self.multi_adj_frame_id_cfg[1])
+        for select_id in adj_id_list:
             select_id = max(index - select_id, 0)
             if not self.data_infos[select_id]['scene_token'] == info[
                     'scene_token']:

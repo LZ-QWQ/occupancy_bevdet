@@ -72,7 +72,7 @@ def main():
     for i, data in enumerate(data_loader):
 
         with torch.no_grad():
-            img_feat = \
+            img_feat, _ = \
                 model.module.image_encoder(data['img_inputs'][0][0].cuda())
             B, N, C, H, W = img_feat.shape
             x = depth_net(img_feat.reshape(B * N, C, H, W))
