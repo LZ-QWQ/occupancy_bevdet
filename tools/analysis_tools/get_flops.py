@@ -42,12 +42,12 @@ def parse_args():
 
 
 def construct_input(input_shape):
-    rot = torch.eye(3).float().cuda().view(1, 3, 3)
-    rot = torch.cat([rot for _ in range(6)], axis=0).view(1, 6, 3, 3)
+    rot = torch.eye(4).float().cuda().view(1, 1, 4, 4).expand(1,6,4,4)
 
+    intrins = torch.eye(3).float().cuda().view(1,1, 3, 3).expand(1,6,3,3)
     input = dict(img_inputs=[
         torch.ones(()).new_empty((1, 6, 3, *input_shape)).cuda(), rot,
-        torch.ones((1, 6, 3)).cuda(), rot, rot,
+        rot, intrins, intrins,
         torch.ones((1, 6, 3)).cuda(),
         torch.eye(3).float().cuda().view(1, 3, 3)
     ])
@@ -74,6 +74,8 @@ def main():
             'multi-modality input')
 
     cfg = Config.fromfile(args.config)
+    if 'stereo' in args.config or 'longterm' in args.config:
+        assert False,'Config has not supported: %s ' % args.config
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
