@@ -1,4 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import os
+
 import mmcv
 import numpy as np
 import torch
@@ -9,6 +11,24 @@ from mmdet3d.core.points import BasePoints, get_points_type
 from mmdet.datasets.pipelines import LoadAnnotations, LoadImageFromFile
 from ...core.bbox import LiDARInstance3DBoxes
 from ..builder import PIPELINES
+
+@PIPELINES.register_module()
+class LoadOccGTFromFile(object):
+    def __call__(self, results):
+        occ_gt_path = results['occ_gt_path']
+        occ_gt_path = os.path.join(occ_gt_path, "labels.npz")
+
+        occ_labels = np.load(occ_gt_path)
+        semantics = occ_labels['semantics']
+        mask_lidar = occ_labels['mask_lidar']
+        mask_camera = occ_labels['mask_camera']
+
+        results['voxel_semantics'] = semantics
+        results['mask_lidar'] = mask_lidar
+        results['mask_camera'] = mask_camera
+
+
+        return results
 
 
 @PIPELINES.register_module()
