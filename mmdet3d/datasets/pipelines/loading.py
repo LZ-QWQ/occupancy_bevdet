@@ -1096,4 +1096,13 @@ class LoadAnnotationsBEVDepth(object):
         post_rots, post_trans = results['img_inputs'][4:]
         results['img_inputs'] = (imgs, rots, trans, intrins, post_rots,
                                  post_trans, bda_rot)
+        if 'voxel_semantics' in results:
+            if flip_dx:
+                results['voxel_semantics'] = results['voxel_semantics'][::-1,...].copy()
+                results['mask_lidar'] = results['mask_lidar'][::-1,...].copy()
+                results['mask_camera'] = results['mask_camera'][::-1,...].copy()
+            if flip_dy:
+                results['voxel_semantics'] = results['voxel_semantics'][:,::-1,...].copy()
+                results['mask_lidar'] = results['mask_lidar'][:,::-1,...].copy()
+                results['mask_camera'] = results['mask_camera'][:,::-1,...].copy()
         return results
