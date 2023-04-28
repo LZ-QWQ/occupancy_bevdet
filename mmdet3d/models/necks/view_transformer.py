@@ -538,6 +538,7 @@ class DepthNet(nn.Module):
                 padding=0))
         self.depth_conv = nn.Sequential(*depth_conv_list)
         self.with_cp = with_cp
+        self.depth_channels = depth_channels
 
     def gen_grid(self, metas, B, N, D, H, W, hi, wi):
         frustum = metas['frustum']
