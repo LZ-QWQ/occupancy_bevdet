@@ -112,7 +112,6 @@ multi_adj_frame_id_cfg = (1, 1+1, 1)
 
 model = dict(
     type='BEVStereo4DOCC',
-    use_mask=True,
     align_after_view_transfromation=False,
     num_adj=len(range(*multi_adj_frame_id_cfg)),
     img_backbone=dict(
@@ -183,66 +182,7 @@ model = dict(
         type='CrossEntropyLoss',
         use_sigmoid=False,
         loss_weight=1.0),
-    pts_bbox_head=dict(
-        type='CenterHead',
-        in_channels=256,
-        tasks=[
-            dict(num_class=10, class_names=['car', 'truck',
-                                            'construction_vehicle',
-                                            'bus', 'trailer',
-                                            'barrier',
-                                            'motorcycle', 'bicycle',
-                                            'pedestrian', 'traffic_cone']),
-        ],
-        common_heads=dict(
-            reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
-        share_conv_channel=64,
-        bbox_coder=dict(
-            type='CenterPointBBoxCoder',
-            pc_range=point_cloud_range[:2],
-            post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
-            max_num=500,
-            score_threshold=0.1,
-            out_size_factor=8,
-            voxel_size=voxel_size[:2],
-            code_size=9),
-        separate_head=dict(
-            type='SeparateHead', init_bias=-2.19, final_kernel=3),
-        loss_cls=dict(type='GaussianFocalLoss', reduction='mean', loss_weight=6.),
-        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=1.5),
-        norm_bbox=True),
-    # model training and testing settings
-    train_cfg=dict(
-        pts=dict(
-            point_cloud_range=point_cloud_range,
-            grid_size=[1024, 1024, 40],
-            voxel_size=voxel_size,
-            out_size_factor=8,
-            dense_reg=1,
-            gaussian_overlap=0.1,
-            max_objs=500,
-            min_radius=2,
-            code_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])),
-    test_cfg=dict(
-        pts=dict(
-            pc_range=point_cloud_range[:2],
-            post_center_limit_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
-            max_per_img=500,
-            max_pool_nms=False,
-            min_radius=[4, 12, 10, 1, 0.85, 0.175],
-            score_threshold=0.1,
-            out_size_factor=8,
-            voxel_size=voxel_size[:2],
-            pre_max_size=1000,
-            post_max_size=500,
-
-            # Scale-NMS
-            nms_type=['rotate'],
-            nms_thr=[0.2],
-            nms_rescale_factor=[[1.0, 0.7, 0.7, 0.4, 0.55,
-                                 1.1, 1.0, 1.0, 1.5, 3.5]]
-        )
-    )
+    use_mask=True,
 )
 
 # Data
@@ -327,14 +267,14 @@ share_data_config = dict(
 
 test_data_config = dict(
     pipeline=test_pipeline,
-    ann_file=data_root + 'bevdetv2-nuscenes-occ_infos_val.pkl')
+    ann_file=data_root + 'bevdetv2-nuscenes_infos_val.pkl')
 
 data = dict(
     samples_per_gpu=2,  # with 32 GPU
     workers_per_gpu=4,
     train=dict(
         data_root=data_root,
-        ann_file=data_root + 'bevdetv2-nuscenes-occ_infos_train.pkl',
+        ann_file=data_root + 'bevdetv2-nuscenes_infos_train.pkl',
         pipeline=train_pipeline,
         classes=class_names,
         test_mode=False,
