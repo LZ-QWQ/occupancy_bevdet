@@ -55,6 +55,10 @@ def main():
     if not args.no_acceleration:
         cfg.model.img_view_transformer.accelerate=True
     cfg.model.train_cfg = None
+    assert cfg.model.type == 'BEVDet', \
+        'Please use class BEVDet for ' \
+        'view transformation inference ' \
+        'speed estimation instead of %s'% cfg.model.type
     model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
     load_checkpoint(model, args.checkpoint, map_location='cpu')
     model = MMDataParallel(model, device_ids=[0])
