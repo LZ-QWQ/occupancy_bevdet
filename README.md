@@ -66,13 +66,20 @@ The latency includes Network/Post-Processing/Total. Training without CBGS is dep
 
 #### Installation and Data Preparation
 
-step 1. Please refer to [getting_started.md](docs/en/getting_started.md) for installing BEVDet as mmdetection3d. [Docker](docker/Dockerfile) is recommended for environment preparation.
+step 1. Please prepare environment as that in [Docker](docker/Dockerfile).
 
-step 2. Prepare nuScenes dataset as introduced in [nuscenes_det.md](docs/en/datasets/nuscenes_det.md) and create the pkl for BEVDet by running:
+step 2. Prepare bevdet repo by.
+```shell script
+git clone https://github.com/HuangJunJie2017/BEVDet.git
+cd BEVDet
+pip install -v -e .
+```
+
+step 3. Prepare nuScenes dataset as introduced in [nuscenes_det.md](docs/en/datasets/nuscenes_det.md) and create the pkl for BEVDet by running:
 ```shell
 python tools/create_data_bevdet.py
 ```
-step 3. For Occupancy Prediction task, download (only) the 'gts' from [CVPR2023-3D-Occupancy-Prediction](https://github.com/CVPR2023-3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction) and arrange the folder as:
+step 4. For Occupancy Prediction task, download (only) the 'gts' from [CVPR2023-3D-Occupancy-Prediction](https://github.com/CVPR2023-3D-Occupancy-Prediction/CVPR2023-3D-Occupancy-Prediction) and arrange the folder as:
 ```shell script
 └── nuscenes
     ├── v1.0-trainval (existing)
@@ -81,6 +88,21 @@ step 3. For Occupancy Prediction task, download (only) the 'gts' from [CVPR2023-
     └── gts (new)
 ```
 
+#### Train model
+```shell
+# single gpu
+python tools/train.py $config
+# multiple gpu
+./tools/dist_train.sh $config num_gpu
+```
+
+#### Test model
+```shell
+# single gpu
+python tools/test.py $config $checkpoint --eval mAP
+# multiple gpu
+./tools/dist_test.sh $config $checkpoint num_gpu --eval mAP
+```
 
 #### Estimate the inference speed of BEVDet
 
