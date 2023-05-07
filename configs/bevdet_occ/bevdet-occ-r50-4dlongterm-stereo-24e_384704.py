@@ -24,9 +24,6 @@
 
 _base_ = ['../_base_/datasets/nus-3d.py', '../_base_/default_runtime.py']
 # Global
-# If point cloud range is changed, the models should also change their point
-# cloud range accordingly
-point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
@@ -210,14 +207,14 @@ share_data_config = dict(
 
 test_data_config = dict(
     pipeline=test_pipeline,
-    ann_file=data_root + 'bevdetv2-nuscenes-occ_infos_val.pkl')
+    ann_file=data_root + 'bevdetv2-nuscenes_infos_val.pkl')
 
 data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
     train=dict(
         data_root=data_root,
-        ann_file=data_root + 'bevdetv2-nuscenes-occ_infos_train.pkl',
+        ann_file=data_root + 'bevdetv2-nuscenes_infos_train.pkl',
         pipeline=train_pipeline,
         classes=class_names,
         test_mode=False,
