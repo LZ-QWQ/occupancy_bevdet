@@ -8,7 +8,7 @@ from mmdet.models import DETECTORS
 from .. import builder
 from .centerpoint import CenterPoint
 from mmdet.models.backbones.resnet import ResNet
-
+from mmdet3d.models.backbones.internimage import InternImage
 
 @DETECTORS.register_module()
 class BEVDet(CenterPoint):
@@ -584,6 +584,12 @@ class BEVStereo4D(BEVDepth4D):
                 res_layer = getattr(self.img_backbone, layer_name)
                 x = res_layer(x)
                 return x
+        elif isinstance(self.img_backbone, InternImage):
+            x = self.img_backbone.patch_embed(x)
+            x = self.img_backbone.pos_drop(x)
+            for i, level in enumerate(self.img_backbone.levels):
+                x, x_ = level(x, return_wo_downsample=True)
+                return x_.permute(0, 3, 1, 2).contiguous()
         else:
             x = self.img_backbone.patch_embed(x)
             hw_shape = (self.img_backbone.patch_embed.DH,

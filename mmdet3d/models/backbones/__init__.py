@@ -10,10 +10,12 @@ from .pointnet2_sa_ssg import PointNet2SASSG
 from .resnet import CustomResNet, CustomResNet3D
 from .second import SECOND
 from .swin import SwinTransformer
+from .internimage import InternImage
+from .custom_layer_decay_optimizer_constructor import CustomLayerDecayOptimizerConstructor
 
 __all__ = [
     'ResNet', 'ResNetV1d', 'ResNeXt', 'SSDVGG', 'HRNet', 'NoStemRegNet',
     'SECOND', 'DGCNNBackbone', 'PointNet2SASSG', 'PointNet2SAMSG',
     'MultiBackbone', 'DLANet', 'MinkResNet', 'CustomResNet', 'CustomResNet3D',
-    'SwinTransformer'
+    'SwinTransformer', 'InternImage', 'CustomLayerDecayOptimizerConstructor'
 ]

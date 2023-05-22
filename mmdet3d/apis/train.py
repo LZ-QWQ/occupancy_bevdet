@@ -316,6 +316,12 @@ def train_detector(model,
         runner.resume(cfg.resume_from)
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
+
+    # 还是选择不load_from吧
+    # # 覆盖掉InternImage的加载
+    # from mmdet3d.models.backbones.internimage import InternImage
+    # if(isinstance(model.module.img_backbone, InternImage)):
+    #     model.module.img_backbone.init_weights()
     runner.run(data_loaders, cfg.workflow)
 
 
