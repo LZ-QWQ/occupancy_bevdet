@@ -114,7 +114,7 @@ model = dict(
         type='CrossEntropyLossLableSmoothing',
         use_sigmoid=False,
         loss_weight=1.0,
-        label_smoothing = 0.05),
+        label_smoothing = 0.0001),
     use_mask=True,
 )
 
@@ -247,4 +247,4 @@ custom_hooks = [
 # load_from="bevdet-stbase-4d-stereo-512x1408-cbgs.pth"
 # fp16 = dict(loss_scale='dynamic')
 
-# evaluation = dict(interval=2, pipeline=test_pipeline) # eval_pipeline , 这个地方真的需要pipline吗  # 貌似有bug，玩个屁....
+evaluation = dict(interval=2, pipeline=test_pipeline) # eval_pipeline , 这个地方真的需要pipline吗  # 貌似有bug，玩个屁....

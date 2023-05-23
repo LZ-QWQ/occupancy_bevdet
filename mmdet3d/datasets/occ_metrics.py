@@ -137,14 +137,21 @@ class Metric_mIoU():
     def count_miou(self):
         mIoU = self.per_class_iu(self.hist)
         # assert cnt == num_samples, 'some samples are not included in the miou calculation'
+        outputs_dict={"samples number": self.cnt, "mIoU": round(np.nanmean(mIoU[:self.num_classes-1]) * 100, 2)}
+
         print(f'===> per class IoU of {self.cnt} samples:')
-        for ind_class in range(self.num_classes-1):
-            print(f'===> {self.class_names[ind_class]} - IoU = ' + str(round(mIoU[ind_class] * 100, 2)))
+        for ind_class in range(self.num_classes):
+            cls_name = self.class_names[ind_class]
+            value = round(mIoU[ind_class] * 100, 2)
+            print(f'===> {cls_name} - IoU = ' + str(value))
+            outputs_dict[cls_name] = value
 
         print(f'===> mIoU of {self.cnt} samples: ' + str(round(np.nanmean(mIoU[:self.num_classes-1]) * 100, 2)))
         # print(f'===> sample-wise averaged mIoU of {cnt} samples: ' + str(round(np.nanmean(mIoU_avg), 2)))
-
-        return self.class_names, mIoU, self.cnt
+        
+        
+        # return self.class_names, mIoU, self.cnt
+        return outputs_dict
 
 
 class Metric_FScore():

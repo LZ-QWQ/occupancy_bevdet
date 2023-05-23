@@ -1,69 +1,47 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
-# align_after_view_transfromation=True
 
-# align_after_view_transfromation=False
-# 1x/12epoch
-# ===> per class IoU of 6019 samples:
-# ===> others - IoU = 10.12
-# ===> barrier - IoU = 48.06
-# ===> bicycle - IoU = 0.0
-# ===> bus - IoU = 51.19
-# ===> car - IoU = 53.61
-# ===> construction_vehicle - IoU = 27.15
-# ===> motorcycle - IoU = 2.74
-# ===> pedestrian - IoU = 28.3
-# ===> traffic_cone - IoU = 23.33
-# ===> trailer - IoU = 36.24
-# ===> truck - IoU = 42.13
-# ===> driveable_surface - IoU = 81.77
-# ===> other_flat - IoU = 42.43
-# ===> sidewalk - IoU = 53.67
-# ===> terrain - IoU = 57.31
-# ===> manmade - IoU = 48.27
-# ===> vegetation - IoU = 43.31
-# ===> mIoU of 6019 samples: 38.21
 
-# 2x/24epoch
+# epoch_10_ema
 # ===> per class IoU of 6019 samples:
-# ===> others - IoU = 12.15
-# ===> barrier - IoU = 49.63
-# ===> bicycle - IoU = 25.1
-# ===> bus - IoU = 52.02
-# ===> car - IoU = 54.46
-# ===> construction_vehicle - IoU = 27.87
-# ===> motorcycle - IoU = 27.99
-# ===> pedestrian - IoU = 28.94
-# ===> traffic_cone - IoU = 27.23
-# ===> trailer - IoU = 36.43
-# ===> truck - IoU = 42.22
+# ===> others - IoU = 11.65
+# ===> barrier - IoU = 50.03
+# ===> bicycle - IoU = 20.82
+# ===> bus - IoU = 51.26
+# ===> car - IoU = 55.1
+# ===> construction_vehicle - IoU = 28.69
+# ===> motorcycle - IoU = 26.02
+# ===> pedestrian - IoU = 29.01
+# ===> traffic_cone - IoU = 26.24
+# ===> trailer - IoU = 38.23
+# ===> truck - IoU = 43.21
+# ===> driveable_surface - IoU = 82.95
+# ===> other_flat - IoU = 44.69
+# ===> sidewalk - IoU = 55.1
+# ===> terrain - IoU = 58.24
+# ===> manmade - IoU = 50.11
+# ===> vegetation - IoU = 44.44
+# ===> mIoU of 6019 samples: 42.1
+#
+# epoch_10
+# ===> per class IoU of 6019 samples:
+# ===> others - IoU = 11.04
+# ===> barrier - IoU = 47.5
+# ===> bicycle - IoU = 20.43
+# ===> bus - IoU = 50.0
+# ===> car - IoU = 53.47
+# ===> construction_vehicle - IoU = 26.25
+# ===> motorcycle - IoU = 25.16
+# ===> pedestrian - IoU = 27.89
+# ===> traffic_cone - IoU = 24.32
+# ===> trailer - IoU = 36.96
+# ===> truck - IoU = 40.97
 # ===> driveable_surface - IoU = 82.31
-# ===> other_flat - IoU = 43.29
-# ===> sidewalk - IoU = 54.62
-# ===> terrain - IoU = 57.9
-# ===> manmade - IoU = 48.61
-# ===> vegetation - IoU = 43.55
-# ===> mIoU of 6019 samples: 42.02
-
-# 3x/36epoch
-# ===> per class IoU of 6019 samples:
-# ===> others - IoU = 12.37
-# ===> barrier - IoU = 50.15
-# ===> bicycle - IoU = 26.97
-# ===> bus - IoU = 51.86
-# ===> car - IoU = 54.65
-# ===> construction_vehicle - IoU = 28.38
-# ===> motorcycle - IoU = 28.96
-# ===> pedestrian - IoU = 29.02
-# ===> traffic_cone - IoU = 28.28
-# ===> trailer - IoU = 37.05
-# ===> truck - IoU = 42.52
-# ===> driveable_surface - IoU = 82.55
-# ===> other_flat - IoU = 43.15
-# ===> sidewalk - IoU = 54.87
-# ===> terrain - IoU = 58.33
-# ===> manmade - IoU = 48.78
-# ===> vegetation - IoU = 43.79
-# ===> mIoU of 6019 samples: 42.45
+# ===> other_flat - IoU = 42.95
+# ===> sidewalk - IoU = 53.64
+# ===> terrain - IoU = 54.71
+# ===> manmade - IoU = 49.01
+# ===> vegetation - IoU = 40.85
+# ===> mIoU of 6019 samples: 40.44
 
 
 

@@ -60,6 +60,9 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         input_dict['occ_gt_path'] = self.data_infos[index]['occ_path']
         return input_dict
 
+    # def __len__(self):
+    #     return 64
+    
     def evaluate(self, occ_results, runner=None, show_dir=None, **eval_kwargs):
         self.occ_eval_metrics = Metric_mIoU(
             num_classes=18,
