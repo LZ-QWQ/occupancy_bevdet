@@ -3,6 +3,52 @@
 # work_dir = "/data/work_dirs/bevdet-internimage_base-labelsmoothing"
 find_unused_parameters = False
 
+# 19 ema
+# ===> per class IoU of 6019 samples:
+# ===> others - IoU = 13.44
+# ===> barrier - IoU = 52.25
+# ===> bicycle - IoU = 32.01
+# ===> bus - IoU = 50.0
+# ===> car - IoU = 57.11
+# ===> construction_vehicle - IoU = 29.45
+# ===> motorcycle - IoU = 29.3
+# ===> pedestrian - IoU = 31.96
+# ===> traffic_cone - IoU = 29.84
+# ===> trailer - IoU = 38.24
+# ===> truck - IoU = 45.56
+# ===> driveable_surface - IoU = 83.52
+# ===> other_flat - IoU = 45.12
+# ===> sidewalk - IoU = 56.51
+# ===> terrain - IoU = 59.93
+# ===> manmade - IoU = 53.19
+# ===> vegetation - IoU = 46.93
+# ===> free - IoU = 91.75
+# ===> mIoU of 6019 samples: 44.37
+
+# 19 ema 608, 1600
+# ===> per class IoU of 6019 samples:
+# ===> others - IoU = 13.34
+# ===> barrier - IoU = 52.45
+# ===> bicycle - IoU = 31.99
+# ===> bus - IoU = 49.57
+# ===> car - IoU = 56.86
+# ===> construction_vehicle - IoU = 28.51
+# ===> motorcycle - IoU = 29.03
+# ===> pedestrian - IoU = 31.72
+# ===> traffic_cone - IoU = 29.92
+# ===> trailer - IoU = 36.29
+# ===> truck - IoU = 45.17
+# ===> driveable_surface - IoU = 83.32
+# ===> other_flat - IoU = 45.07
+# ===> sidewalk - IoU = 56.21
+# ===> terrain - IoU = 59.63
+# ===> manmade - IoU = 52.68
+# ===> vegetation - IoU = 47.23
+# ===> free - IoU = 91.44
+# ===> mIoU of 6019 samples: 44.06
+
+# 19 ema 640, 1760 ===> mIoU of 6019 samples: 41.34
+
 _base_ = ['../_base_/datasets/nus-3d.py', '../_base_/default_runtime.py']
 # For nuScenes we usually do 10-class detection
 class_names = [
