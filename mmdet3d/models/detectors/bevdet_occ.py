@@ -78,8 +78,9 @@ class BEVStereo4DOCC(BEVStereo4D):
             occ_pred = self.predicter(occ_pred)
         occ_score=occ_pred.softmax(-1)
         occ_res=occ_score.argmax(-1)
-        occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
-        return [occ_res]
+        # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+        # return [occ_res]
+        return [occ_score.squeeze(dim=0).cpu().numpy().astype(np.float16)]
 
     def forward_train(self,
                       points=None,
