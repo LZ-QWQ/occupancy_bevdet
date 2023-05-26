@@ -48,6 +48,7 @@ find_unused_parameters = False
 # ===> mIoU of 6019 samples: 44.06
 
 # 19 ema 640, 1760 ===> mIoU of 6019 samples: 41.34
+# 19 ema 416, 1152 ===> mIoU of 6019 samples: 38.04
 
 _base_ = ['../_base_/datasets/nus-3d.py', '../_base_/default_runtime.py']
 # For nuScenes we usually do 10-class detection

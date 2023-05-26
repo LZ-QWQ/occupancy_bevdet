@@ -164,14 +164,26 @@ class BEVDet(CenterPoint):
             raise ValueError(
                 'num of augmentations ({}) != num of image meta ({})'.format(
                     len(img_inputs), len(img_metas)))
-
-        if not isinstance(img_inputs[0][0], list):
+        
+        # print("喵喵喵" , type(img_inputs)) # list
+        # print(len(img_inputs))
+        # print(len(img_inputs[0]), type(img_inputs[0]))
+        # LZ modified for TTA
+        if len(img_inputs) == 1:
             img_inputs = [img_inputs] if img_inputs is None else img_inputs
             points = [points] if points is None else points
             return self.simple_test(points[0], img_metas[0], img_inputs[0],
                                     **kwargs)
         else:
-            return self.aug_test(None, img_metas[0], img_inputs[0], **kwargs)
+            return self.aug_test(None, img_metas, img_inputs, **kwargs)
+
+        # if not isinstance(img_inputs[0][0], list):
+        #     img_inputs = [img_inputs] if img_inputs is None else img_inputs
+        #     points = [points] if points is None else points
+        #     return self.simple_test(points[0], img_metas[0], img_inputs[0],
+        #                             **kwargs)
+        # else:
+        #     return self.aug_test(None, img_metas[0], img_inputs[0], **kwargs)
 
     def aug_test(self, points, img_metas, img=None, rescale=False):
         """Test function without augmentaiton."""

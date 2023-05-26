@@ -81,6 +81,31 @@ class BEVStereo4DOCC(BEVStereo4D):
         occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
         return [occ_res]
 
+    def aug_test(self, points, img_metas, img, flip_xy, rescale=False, **kwargs):
+        """
+        img: [[Tensor, other Tensor], [...], ...]
+        """
+        B, NL, C,H,W = img[0][0].size()
+        occ_score_total = torch.zeros([B, 200, 200, 16, 18]).to(img[0][0]) # FIXME 暂时固定
+        for i, img_tmp in enumerate(img):
+            img_feats, _, _ = self.extract_feat(
+                None, img=img_tmp, img_metas=img_metas[i], **kwargs)
+            occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1)
+            # bncdhw->bnwhdc
+            if self.use_predicter:
+                occ_pred = self.predicter(occ_pred)
+            # occ_pred=occ_pred.softmax(-1)
+            # print(flip_xy[i])
+            if flip_xy[i][0]:
+                occ_pred = torch.flip(occ_pred, dims=[1])
+            if flip_xy[i][1]:
+                occ_pred = torch.flip(occ_pred, dims=[2])
+            occ_score_total+=occ_pred
+
+        occ_res=occ_score_total.argmax(-1)
+        occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+        return [occ_res]
+
     def forward_train(self,
                       points=None,
                       img_metas=None,
