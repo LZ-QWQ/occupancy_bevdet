@@ -125,6 +125,8 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         info = self.data_infos[idx]
         occ_gt = np.load(os.path.join(info['occ_path'],'labels.npz'))
         gt_semantics = occ_gt['semantics']
+        mask_camera = occ_gt['mask_camera']
+
         # if self.use_valid_flag:
         #     mask = info['valid_flag']
         #     gt_names = set(info['gt_names'][mask])
@@ -136,5 +138,13 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         #     cat_ids.append(cat_id)
        
         gt_list = gt_semantics.flatten().tolist()
-        return gt_list
+        mask_list = mask_camera.flatten().tolist()
+
+        gt_list_final = []
+        for i in range(len(gt_list)):
+            if mask_list[i] == 1:
+                gt_list_final.append(gt_list[i])
+
+        return gt_list_final
+        # return gt_list
         # return random.sample(gt_list, len(gt_list) // 10)
