@@ -3,8 +3,8 @@ import os
 import sys
 from concurrent.futures import ProcessPoolExecutor,as_completed
 
-path = '/media/data3/caiwb/BEVDet/results'
-merge_path = os.path.join(path, 'merge')
+path = '/media/data3/caiwb/occupancy_bevdet/results'
+merge_path = os.path.join(path, 'merge_logit')
 
 results = os.listdir(merge_path)
 
@@ -22,8 +22,8 @@ def thread_merge(file):
     for result in results:
         label_path = os.path.join(merge_path, result, file)
         res = np.load(label_path)
-        res = res['arr_0']
-        res = np.eye(num_class)[res]
+        res = res['arr_0'][0]
+        # res = np.eye(num_class)[res]
         sum += res
     sum = np.argmax(sum, -1)
     return sum, file
