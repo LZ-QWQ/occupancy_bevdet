@@ -109,3 +109,32 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         occ_bev_vis = occ_bev_vis.reshape(200, 200, 4)[::-1, ::-1, :3]
         occ_bev_vis = cv2.resize(occ_bev_vis,(400,400))
         return occ_bev_vis
+
+    def get_cat_ids(self, idx):
+        """Get category distribution of single scene.
+
+        Args:
+            idx (int): Index of the data_info.
+
+        Returns:
+            dict[list]: for each category, if the current scene
+                contains such boxes, store a list containing idx,
+                otherwise, store empty list.
+        """
+        
+        info = self.data_infos[idx]
+        occ_gt = np.load(os.path.join(info['occ_path'],'labels.npz'))
+        gt_semantics = occ_gt['semantics']
+        # if self.use_valid_flag:
+        #     mask = info['valid_flag']
+        #     gt_names = set(info['gt_names'][mask])
+        # else:
+        #     gt_names = set(info['gt_names'])
+
+        # cat_ids = []
+        # for cat_id in gt_semantics:
+        #     cat_ids.append(cat_id)
+       
+        gt_list = gt_semantics.flatten().tolist()
+        return gt_list
+        # return random.sample(gt_list, len(gt_list) // 10)

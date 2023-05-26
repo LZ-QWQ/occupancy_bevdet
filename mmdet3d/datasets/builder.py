@@ -21,7 +21,7 @@ PIPELINES = Registry('pipeline')
 
 
 def build_dataset(cfg, default_args=None):
-    from mmdet3d.datasets.dataset_wrappers import CBGSDataset
+    from mmdet3d.datasets.dataset_wrappers import CBGSDataset, CBGSDatasetOcc
     from mmdet.datasets.dataset_wrappers import (ClassBalancedDataset,
                                                  ConcatDataset, RepeatDataset)
     if isinstance(cfg, (list, tuple)):
@@ -38,6 +38,8 @@ def build_dataset(cfg, default_args=None):
             build_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])
     elif cfg['type'] == 'CBGSDataset':
         dataset = CBGSDataset(build_dataset(cfg['dataset'], default_args))
+    elif cfg['type'] == 'CBGSDatasetOcc':  # For Occ CBGS
+        dataset = CBGSDatasetOcc(build_dataset(cfg['dataset'], default_args))
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
     elif cfg['type'] in DATASETS._module_dict.keys():
