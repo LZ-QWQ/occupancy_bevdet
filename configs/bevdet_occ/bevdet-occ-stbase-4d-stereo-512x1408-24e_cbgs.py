@@ -1,71 +1,68 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 # align_after_view_transfromation=True
 
-# align_after_view_transfromation=False
-# 1x/12epoch
+# epoch 1
 # ===> per class IoU of 6019 samples:
-# ===> others - IoU = 10.12
-# ===> barrier - IoU = 48.06
-# ===> bicycle - IoU = 0.0
-# ===> bus - IoU = 51.19
-# ===> car - IoU = 53.61
-# ===> construction_vehicle - IoU = 27.15
-# ===> motorcycle - IoU = 2.74
-# ===> pedestrian - IoU = 28.3
-# ===> traffic_cone - IoU = 23.33
-# ===> trailer - IoU = 36.24
-# ===> truck - IoU = 42.13
-# ===> driveable_surface - IoU = 81.77
-# ===> other_flat - IoU = 42.43
-# ===> sidewalk - IoU = 53.67
-# ===> terrain - IoU = 57.31
-# ===> manmade - IoU = 48.27
-# ===> vegetation - IoU = 43.31
-# ===> mIoU of 6019 samples: 38.21
+# ===> others - IoU = 3.29
+# ===> barrier - IoU = 43.34
+# ===> bicycle - IoU = 0.1
+# ===> bus - IoU = 41.77
+# ===> car - IoU = 47.68
+# ===> construction_vehicle - IoU = 19.56
+# ===> motorcycle - IoU = 5.8
+# ===> pedestrian - IoU = 21.43
+# ===> traffic_cone - IoU = 17.61
+# ===> trailer - IoU = 25.5
+# ===> truck - IoU = 37.63
+# ===> driveable_surface - IoU = 79.68
+# ===> other_flat - IoU = 34.12
+# ===> sidewalk - IoU = 49.14
+# ===> terrain - IoU = 45.1
+# ===> manmade - IoU = 45.37
+# ===> vegetation - IoU = 39.7
+# ===> mIoU of 6019 samples: 32.76
 
-# 2x/24epoch
+# epoch 2
 # ===> per class IoU of 6019 samples:
-# ===> others - IoU = 12.15
-# ===> barrier - IoU = 49.63
-# ===> bicycle - IoU = 25.1
-# ===> bus - IoU = 52.02
-# ===> car - IoU = 54.46
-# ===> construction_vehicle - IoU = 27.87
-# ===> motorcycle - IoU = 27.99
-# ===> pedestrian - IoU = 28.94
-# ===> traffic_cone - IoU = 27.23
-# ===> trailer - IoU = 36.43
-# ===> truck - IoU = 42.22
-# ===> driveable_surface - IoU = 82.31
-# ===> other_flat - IoU = 43.29
-# ===> sidewalk - IoU = 54.62
-# ===> terrain - IoU = 57.9
-# ===> manmade - IoU = 48.61
-# ===> vegetation - IoU = 43.55
-# ===> mIoU of 6019 samples: 42.02
+# ===> others - IoU = 8.0
+# ===> barrier - IoU = 46.73
+# ===> bicycle - IoU = 17.55
+# ===> bus - IoU = 47.92
+# ===> car - IoU = 52.65
+# ===> construction_vehicle - IoU = 25.46
+# ===> motorcycle - IoU = 21.52
+# ===> pedestrian - IoU = 24.19
+# ===> traffic_cone - IoU = 19.77
+# ===> trailer - IoU = 35.3
+# ===> truck - IoU = 40.52
+# ===> driveable_surface - IoU = 81.12
+# ===> other_flat - IoU = 41.05
+# ===> sidewalk - IoU = 52.36
+# ===> terrain - IoU = 53.43
+# ===> manmade - IoU = 45.34
+# ===> vegetation - IoU = 38.86
+# ===> mIoU of 6019 samples: 38.34
 
-# 3x/36epoch
+# epoch 3
 # ===> per class IoU of 6019 samples:
-# ===> others - IoU = 12.37
-# ===> barrier - IoU = 50.15
-# ===> bicycle - IoU = 26.97
-# ===> bus - IoU = 51.86
-# ===> car - IoU = 54.65
-# ===> construction_vehicle - IoU = 28.38
-# ===> motorcycle - IoU = 28.96
-# ===> pedestrian - IoU = 29.02
-# ===> traffic_cone - IoU = 28.28
-# ===> trailer - IoU = 37.05
-# ===> truck - IoU = 42.52
-# ===> driveable_surface - IoU = 82.55
-# ===> other_flat - IoU = 43.15
-# ===> sidewalk - IoU = 54.87
-# ===> terrain - IoU = 58.33
-# ===> manmade - IoU = 48.78
-# ===> vegetation - IoU = 43.79
-# ===> mIoU of 6019 samples: 42.45
-
-
+# ===> others - IoU = 9.24
+# ===> barrier - IoU = 46.98
+# ===> bicycle - IoU = 24.53
+# ===> bus - IoU = 49.25
+# ===> car - IoU = 52.32
+# ===> construction_vehicle - IoU = 26.77
+# ===> motorcycle - IoU = 26.6
+# ===> pedestrian - IoU = 25.85
+# ===> traffic_cone - IoU = 24.25
+# ===> trailer - IoU = 35.67
+# ===> truck - IoU = 39.22
+# ===> driveable_surface - IoU = 81.64
+# ===> other_flat - IoU = 39.61
+# ===> sidewalk - IoU = 52.72
+# ===> terrain - IoU = 52.25
+# ===> manmade - IoU = 46.47
+# ===> vegetation - IoU = 41.81
+# ===> mIoU of 6019 samples: 39.72
 
 _base_ = ['../_base_/datasets/nus-3d.py', '../_base_/default_runtime.py']
 # # For nuScenes we usually do 10-class detection
@@ -319,5 +316,7 @@ custom_hooks = [
     ),
 ]
 
-load_from="./ckpts/bevdet-stbase-4d-stereo-512x1408-cbgs.pth"
+load_from="bevdet-stbase-4d-stereo-512x1408-cbgs.pth"
 # fp16 = dict(loss_scale='dynamic')
+
+evaluation = dict(interval=1, pipeline=test_pipeline)
