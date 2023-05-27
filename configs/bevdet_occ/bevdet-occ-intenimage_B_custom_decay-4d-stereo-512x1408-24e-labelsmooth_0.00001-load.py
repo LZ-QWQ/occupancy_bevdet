@@ -28,7 +28,7 @@ grid_config = {
     "depth": [1.0, 45.0, 0.5],
 }
 
-voxel_size = [0.1, 0.1, 0.2]
+# voxel_size = [0.1, 0.1, 0.2]
 
 numC_Trans = 32
 
