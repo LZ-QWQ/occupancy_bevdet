@@ -1,7 +1,7 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# work_dir = "/data/work_dirs/bevdet-internimage_base_customdecay-labelsmoothing_0.00001-load"
-find_unused_parameters = False
+
+# come from "bevdet-occ-stbase-4d-stereo-512x1408-24e_labelsmooth.py"
 
 _base_ = ["../_base_/datasets/nus-3d.py", "../_base_/default_runtime.py"]
 # For nuScenes we usually do 10-class detection
@@ -28,38 +28,43 @@ grid_config = {
     "depth": [1.0, 45.0, 0.5],
 }
 
-# voxel_size = [0.1, 0.1, 0.2]
+voxel_size = [0.1, 0.1, 0.2]
 
 numC_Trans = 32
 
 multi_adj_frame_id_cfg = (1, 1 + 1, 1)
 
-pretrained = "https://huggingface.co/OpenGVLab/InternImage/resolve/main/mask_rcnn_internimage_b_fpn_3x_coco.pth"
 model = dict(
     type="BEVStereo4DOCC",
     align_after_view_transfromation=False,
     num_adj=len(range(*multi_adj_frame_id_cfg)),
     img_backbone=dict(
-        _delete_=True,
-        type="InternImage",  # ......这玩意忘了用那个特殊的优化器，这一版使用了！
-        core_op="DCNv3",
-        channels=112,
-        depths=[4, 4, 21, 4],
-        groups=[7, 14, 28, 56],
-        mlp_ratio=4.0,
-        drop_path_rate=0.4,
-        norm_layer="LN",
-        layer_scale=1.0,
-        offset_scale=1.0,
-        post_norm=True,
-        with_cp=True,
+        type="SwinTransformer",
+        pretrain_img_size=224,
+        patch_size=4,
+        window_size=12,
+        mlp_ratio=4,
+        embed_dims=128,
+        depths=[2, 2, 18, 2],
+        num_heads=[4, 8, 16, 32],
+        strides=(4, 2, 2, 2),
         out_indices=(2, 3),
-        init_cfg=dict(type="Pretrained", checkpoint=pretrained),
-        return_stereo_feat=True,  # 看起来要返回第一个stage的特征
+        qkv_bias=True,
+        qk_scale=None,
+        patch_norm=True,
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        drop_path_rate=0.1,
+        use_abs_pos_embed=False,
+        return_stereo_feat=True,
+        act_cfg=dict(type="GELU"),
+        norm_cfg=dict(type="LN", requires_grad=True),
+        pretrain_style="official",
+        output_missing_index_as_none=False,
     ),
     img_neck=dict(
         type="FPN_LSS",
-        in_channels=448 + 896,
+        in_channels=512 + 1024,
         out_channels=512,
         # with_cp=False,
         extra_upsample=None,
@@ -109,13 +114,7 @@ model = dict(
     #     type='CrossEntropyLoss',
     #     use_sigmoid=False,
     #     loss_weight=1.0),
-    loss_occ=dict(
-        type="CrossEntropyLossLableSmoothing",
-        use_sigmoid=False,
-        loss_weight=1.0,
-        label_smoothing=0.00001,
-        class_weight=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8], # others ...... free
-    ),
+    loss_occ=dict(type="CrossEntropyLossLableSmoothing", use_sigmoid=False, loss_weight=1.0, label_smoothing=0.05),
     use_mask=True,
 )
 
@@ -136,21 +135,38 @@ train_pipeline = [
     dict(type="Collect3D", keys=["img_inputs", "gt_depth", "voxel_semantics", "mask_lidar", "mask_camera"]),
 ]
 
+# TTA 
 test_pipeline = [
-    dict(type="PrepareImageInputs", data_config=data_config, sequential=True),
-    dict(type="LoadAnnotationsBEVDepth", bda_aug_conf=bda_aug_conf, classes=class_names, is_train=False),
-    dict(type="LoadPointsFromFile", coord_type="LIDAR", load_dim=5, use_dim=5, file_client_args=file_client_args),
     dict(
-        type="MultiScaleFlipAug3D",
-        img_scale=(1333, 800),
-        pts_scale_ratio=1,
-        flip=False,
+        type="OccTTA_TestPipline", # PrepareImageInputs 和 LoadAnnotationsBEVDepth 以TTA的形式嵌入
+        data_config=data_config,
         transforms=[
             dict(type="DefaultFormatBundle3D", class_names=class_names, with_label=False),
-            dict(type="Collect3D", keys=["points", "img_inputs"]),
+            dict(type="Collect3D", keys=["img_inputs"]),  # 'points',
         ],
-    ),
+    )
 ]
+
+# test_pipeline = [
+#     dict(type='PrepareImageInputs', data_config=data_config, sequential=True),
+#     dict(
+#         type='LoadAnnotationsBEVDepth',
+#         bda_aug_conf=bda_aug_conf,
+#         classes=class_names,
+#         is_train=False),
+#     dict(
+#         type='MultiScaleFlipAug3D',
+#         img_scale=(1333, 800),
+#         pts_scale_ratio=1,
+#         flip=False,
+#         transforms=[
+#             dict(
+#                 type='DefaultFormatBundle3D',
+#                 class_names=class_names,
+#                 with_label=False),
+#             dict(type='Collect3D', keys=['img_inputs']) # 'points',
+#         ])
+# ]
 
 input_modality = dict(use_lidar=False, use_camera=True, use_radar=False, use_map=False, use_external=False)
 
@@ -167,8 +183,8 @@ share_data_config = dict(
 test_data_config = dict(pipeline=test_pipeline, ann_file=data_root + "bevdetv2-nuscenes_infos_val.pkl")
 
 data = dict(
-    samples_per_gpu=4,  # with 32 GPU
-    workers_per_gpu=8,
+    samples_per_gpu=2,  # with 32 GPU
+    workers_per_gpu=4,
     train=dict(
         data_root=data_root,
         ann_file=data_root + "bevdetv2-nuscenes_infos_train.pkl",
@@ -188,13 +204,7 @@ for key in ["val", "train", "test"]:
     data[key].update(share_data_config)
 
 # Optimizer
-optimizer = dict(
-    type="AdamW",
-    lr=2e-4,
-    weight_decay=1e-2,
-    constructor="CustomLayerDecayOptimizerConstructor",
-    paramwise_cfg=dict(num_layers=33, layer_decay_rate=1.0, depths=[4, 4, 21, 4]),
-)
+optimizer = dict(type="AdamW", lr=2e-4, weight_decay=1e-2)
 optimizer_config = dict(grad_clip=dict(max_norm=5, norm_type=2))
 lr_config = dict(
     policy="step",
@@ -220,7 +230,6 @@ custom_hooks = [
 ]
 
 load_from = "bevdet-stbase-4d-stereo-512x1408-cbgs.pth"
-backbone_init_weight_after_load = True  # backbone用别的加载
 # fp16 = dict(loss_scale='dynamic')
 
-evaluation = dict(interval=4, pipeline=test_pipeline)  # eval_pipeline , 这个地方真的需要pipline吗  # 貌似有bug，玩个屁....
+evaluation = dict(interval=5, pipeline=test_pipeline)  # eval_pipeline , 这个地方真的需要pipline吗
