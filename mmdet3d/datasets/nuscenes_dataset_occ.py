@@ -148,3 +148,14 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         return gt_list_final
         # return gt_list
         # return random.sample(gt_list, len(gt_list) // 10)
+        
+    def format_results(self, occ_results,submission_prefix,**kwargs):
+        if submission_prefix is not None:
+            mmcv.mkdir_or_exist(submission_prefix)
+
+        for index, occ_pred in enumerate(tqdm(occ_results)):
+            info = self.data_infos[index]
+            sample_token = info['token']
+            save_path=os.path.join(submission_prefix,'{}.npz'.format(sample_token))
+            np.savez_compressed(save_path,occ_pred.astype(np.float16))
+        print('\nFinished.')

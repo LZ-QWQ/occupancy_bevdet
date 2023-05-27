@@ -83,7 +83,7 @@ grid_config = {
     'depth': [1.0, 45.0, 0.5],
 }
 
-voxel_size = [0.1, 0.1, 0.2]
+# voxel_size = [0.1, 0.1, 0.2]
 
 numC_Trans = 32
 
@@ -201,32 +201,44 @@ train_pipeline = [
                                 'mask_lidar','mask_camera'])
 ]
 
+# TTA 
 test_pipeline = [
-    dict(type='PrepareImageInputs', data_config=data_config, sequential=True),
     dict(
-        type='LoadAnnotationsBEVDepth',
-        bda_aug_conf=bda_aug_conf,
-        classes=class_names,
-        is_train=False),
-    dict(
-        type='LoadPointsFromFile',
-        coord_type='LIDAR',
-        load_dim=5,
-        use_dim=5,
-        file_client_args=file_client_args),
-    dict(
-        type='MultiScaleFlipAug3D',
-        img_scale=(1333, 800),
-        pts_scale_ratio=1,
-        flip=False,
+        type="OccTTA_TestPipline", # PrepareImageInputs 和 LoadAnnotationsBEVDepth 以TTA的形式嵌入
+        data_config=data_config,
         transforms=[
-            dict(
-                type='DefaultFormatBundle3D',
-                class_names=class_names,
-                with_label=False),
-            dict(type='Collect3D', keys=['points', 'img_inputs'])
-        ])
+            dict(type="DefaultFormatBundle3D", class_names=class_names, with_label=False),
+            dict(type="Collect3D", keys=["img_inputs"]),  # 'points',
+        ],
+    )
 ]
+
+# test_pipeline = [
+#     dict(type='PrepareImageInputs', data_config=data_config, sequential=True),
+#     dict(
+#         type='LoadAnnotationsBEVDepth',
+#         bda_aug_conf=bda_aug_conf,
+#         classes=class_names,
+#         is_train=False),
+#     dict(
+#         type='LoadPointsFromFile',
+#         coord_type='LIDAR',
+#         load_dim=5,
+#         use_dim=5,
+#         file_client_args=file_client_args),
+#     dict(
+#         type='MultiScaleFlipAug3D',
+#         img_scale=(1333, 800),
+#         pts_scale_ratio=1,
+#         flip=False,
+#         transforms=[
+#             dict(
+#                 type='DefaultFormatBundle3D',
+#                 class_names=class_names,
+#                 with_label=False),
+#             dict(type='Collect3D', keys=['points', 'img_inputs'])
+#         ])
+# ]
 
 input_modality = dict(
     use_lidar=False,
