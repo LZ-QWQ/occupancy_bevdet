@@ -1,45 +1,25 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# 24 epoch_ema
-# ===> per class IoU of 6019 samples:
-# ===> others - IoU = 13.25
-# ===> barrier - IoU = 52.57
-# ===> bicycle - IoU = 30.72
-# ===> bus - IoU = 51.19
-# ===> car - IoU = 57.39
-# ===> construction_vehicle - IoU = 29.33
-# ===> motorcycle - IoU = 30.81
-# ===> pedestrian - IoU = 31.69
-# ===> traffic_cone - IoU = 28.51
-# ===> trailer - IoU = 38.13
-# ===> truck - IoU = 45.26
-# ===> driveable_surface - IoU = 83.77
-# ===> other_flat - IoU = 46.02
-# ===> sidewalk - IoU = 56.74
-# ===> terrain - IoU = 59.76
-# ===> manmade - IoU = 52.19
-# ===> vegetation - IoU = 46.66
-# ===> free - IoU = 91.31
-# ===> mIoU of 6019 samples: 44.35
-
-# ===> mIoU of 6019 samples: 44.13 22 ema
-# ===> mIoU of 6019 samples: 43.93 20 ema
-# ===> mIoU of 6019 samples: 43.8 19 ema
-# ===> mIoU of 6019 samples: 43.69 18 ema
-# ===> mIoU of 6019 samples: 43.45 16 ema
-# ===> mIoU of 6019 samples: 43.02 14 ema
-
 # work_dir = "/data/work_dirs/bevdet-internimage_base_customdecay-labelsmoothing_0.00001-load"
 find_unused_parameters = False
 
 _base_ = ["../_base_/datasets/nus-3d.py", "../_base_/default_runtime.py"]
-# For nuScenes we usually do 10-class detection
-class_names = ["car", "truck", "construction_vehicle", "bus", "trailer", "barrier", "motorcycle", "bicycle", "pedestrian", "traffic_cone"]
+# # For nuScenes we usually do 10-class detection
+# class_names = [
+#     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
+#     'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
+# ]
+# Actually we have 17 clesses for nuScenes
+class_names = [
+    'void', 'barrier', 'bicycle', 'bus', 'car', 'construction_vehicle',
+    'motorcycle', 'pedestrian', 'traffic_cone', 'trailer', 'truck', 'driveable_surface',
+    'other_flat', 'sidewalk', 'terrain', 'manmade', 'vegetation', 'free'
+]
 
 data_config = {
     "cams": ["CAM_FRONT_LEFT", "CAM_FRONT", "CAM_FRONT_RIGHT", "CAM_BACK_LEFT", "CAM_BACK", "CAM_BACK_RIGHT"],
     "Ncams": 6,
-    "input_size": (512, 1408),
+    "input_size": (768, 1408),
     "src_size": (900, 1600),
     # Augmentation
     "resize": (-0.06, 0.11),
@@ -57,7 +37,7 @@ grid_config = {
     "depth": [1.0, 45.0, 0.5],
 }
 
-# voxel_size = [0.1, 0.1, 0.2]
+voxel_size = [0.1, 0.1, 0.2]
 
 numC_Trans = 32
 
@@ -142,8 +122,8 @@ model = dict(
         type="CrossEntropyLossLableSmoothing",
         use_sigmoid=False,
         loss_weight=1.0,
-        label_smoothing=0.00001,
-        class_weight=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8], # others ...... free
+        label_smoothing=0.0001,
+        class_weight=[1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 0.66], # others ...... free
     ),
     use_mask=True,
 )
@@ -199,22 +179,27 @@ data = dict(
     samples_per_gpu=4,  # with 32 GPU
     workers_per_gpu=8,
     train=dict(
-        data_root=data_root,
-        ann_file=data_root + "bevdetv2-nuscenes_infos_train.pkl",
-        pipeline=train_pipeline,
-        classes=class_names,
-        test_mode=False,
-        use_valid_flag=True,
-        # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
-        # and box_type_3d='Depth' in sunrgbd and scannet dataset.
-        box_type_3d="LiDAR",
-    ),
+        type='CBGSDatasetOcc',
+        dataset=dict(
+            data_root=data_root,
+            ann_file=data_root + 'bevdetv2-nuscenes_infos_train.pkl',
+            pipeline=train_pipeline,
+            classes=class_names,
+            test_mode=False,
+            use_valid_flag=True,
+            # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
+            # and box_type_3d='Depth' in sunrgbd and scannet dataset.
+            box_type_3d='LiDAR')
+        ),
     val=test_data_config,
     test=test_data_config,
 )
 
-for key in ["val", "train", "test"]:
+# for key in ['val', 'train', 'test']:
+#     data[key].update(share_data_config)
+for key in ['val', 'test']:
     data[key].update(share_data_config)
+data['train']['dataset'].update(share_data_config)
 
 # Optimizer
 optimizer = dict(
@@ -231,10 +216,10 @@ lr_config = dict(
     warmup_iters=200,
     warmup_ratio=0.001,
     step=[
-        24,
+        100,
     ],
 )
-runner = dict(type="EpochBasedRunner", max_epochs=24)
+runner = dict(type="EpochBasedRunner", max_epochs=100)
 
 custom_hooks = [
     dict(

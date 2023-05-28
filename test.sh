@@ -8,3 +8,5 @@
 CUDA_VISIBLE_DEVICES="0,1,2,3,4, 5,7" \
 bash ./tools/dist_test.sh ./configs/bevdet_occ/TTA_config_InternImage.py \
  ./ckpts/bevdet-InternImageB-LS_0.0001-epoch_19_ema.pth 7 --eval miao
+
+#  | tee -a ./work_dirs/test_log_internimage_B-LB_0.00001-load.txt
