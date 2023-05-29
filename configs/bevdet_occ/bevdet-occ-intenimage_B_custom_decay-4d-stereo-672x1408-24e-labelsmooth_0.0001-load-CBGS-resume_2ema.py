@@ -1,6 +1,6 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# work_dir = "/data/work_dirs/bevdet-internimage_base_customdecay-labelsmoothing_0.00001-load"
+work_dir = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS-resume"
 find_unused_parameters = False
 
 _base_ = ["../_base_/datasets/nus-3d.py", "../_base_/default_runtime.py"]
@@ -19,7 +19,7 @@ class_names = [
 data_config = {
     "cams": ["CAM_FRONT_LEFT", "CAM_FRONT", "CAM_FRONT_RIGHT", "CAM_BACK_LEFT", "CAM_BACK", "CAM_BACK_RIGHT"],
     "Ncams": 6,
-    "input_size": (768, 1408),
+    "input_size": (672, 1408),
     "src_size": (900, 1600),
     # Augmentation
     "resize": (-0.06, 0.11),
@@ -176,7 +176,7 @@ share_data_config = dict(
 test_data_config = dict(pipeline=test_pipeline, ann_file=data_root + "bevdetv2-nuscenes_infos_val.pkl")
 
 data = dict(
-    samples_per_gpu=4,  # with 32 GPU
+    samples_per_gpu=4, # with 8 A100
     workers_per_gpu=8,
     train=dict(
         type='CBGSDatasetOcc',
@@ -215,11 +215,9 @@ lr_config = dict(
     warmup="linear",
     warmup_iters=200,
     warmup_ratio=0.001,
-    step=[
-        100,
-    ],
+    step=[13, 21],
 )
-runner = dict(type="EpochBasedRunner", max_epochs=100)
+runner = dict(type="EpochBasedRunner", max_epochs=24)
 
 custom_hooks = [
     dict(
@@ -233,8 +231,8 @@ custom_hooks = [
     ),
 ]
 
-load_from = "bevdet-stbase-4d-stereo-512x1408-cbgs.pth"
-backbone_init_weight_after_load = True  # backbone用别的加载
+load_from = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS/epoch_2_ema.pth"
+backbone_init_weight_after_load = False  # backbone用别的加载
 # fp16 = dict(loss_scale='dynamic')
 
 evaluation = dict(interval=4, pipeline=test_pipeline)  # eval_pipeline , 这个地方真的需要pipline吗  # 貌似有bug，玩个屁....
