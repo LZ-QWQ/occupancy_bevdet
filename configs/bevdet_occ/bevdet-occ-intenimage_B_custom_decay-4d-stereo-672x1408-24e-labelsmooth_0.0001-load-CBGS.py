@@ -2,6 +2,9 @@
 
 # epoch2_ema ===> mIoU of 6019 samples: 44.76
 # epoch4_ema ===> mIoU of 6019 samples: 45.5
+# epoch4_ema_tta ===> mIoU of 6019 samples: 46.08
+
+# epoch7_ema ===> mIoU of 6019 samples: 45.84
 
 work_dir = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS"
 find_unused_parameters = False

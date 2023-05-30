@@ -14,9 +14,24 @@ _base_ = ["../_base_/datasets/nus-3d.py", "../_base_/default_runtime.py"]
 # ]
 # Actually we have 17 clesses for nuScenes
 class_names = [
-    'void', 'barrier', 'bicycle', 'bus', 'car', 'construction_vehicle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'trailer', 'truck', 'driveable_surface',
-    'other_flat', 'sidewalk', 'terrain', 'manmade', 'vegetation', 'free'
+    "void",
+    "barrier",
+    "bicycle",
+    "bus",
+    "car",
+    "construction_vehicle",
+    "motorcycle",
+    "pedestrian",
+    "traffic_cone",
+    "trailer",
+    "truck",
+    "driveable_surface",
+    "other_flat",
+    "sidewalk",
+    "terrain",
+    "manmade",
+    "vegetation",
+    "free",
 ]
 
 data_config = {
@@ -29,7 +44,7 @@ data_config = {
     "rot": (-5.4, 5.4),
     "flip": True,
     "crop_h": (0.0, 0.0),
-    "resize_test": 0.00,
+    # "resize_test": 0.00, # deprecated in TTA
 }
 
 # Model
@@ -126,7 +141,26 @@ model = dict(
         use_sigmoid=False,
         loss_weight=1.0,
         label_smoothing=0.0001,
-        class_weight=[1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 0.66], # others ...... free
+        class_weight=[
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            1.02,
+            0.66,
+        ],  # others ...... free
     ),
     use_mask=True,
 )
@@ -148,17 +182,21 @@ train_pipeline = [
     dict(type="Collect3D", keys=["img_inputs", "gt_depth", "voxel_semantics", "mask_lidar", "mask_camera"]),
 ]
 
-# TTA 
+# =============================== TTA !!!!!!==============================================================
 test_pipeline = [
     dict(
-        type="OccTTA_TestPipline", # PrepareImageInputs 和 LoadAnnotationsBEVDepth 以TTA的形式嵌入
+        type="OccTTA_TestPipline",  # PrepareImageInputs 和 LoadAnnotationsBEVDepth 以TTA的形式嵌入
         data_config=data_config,
+        flip_view_num=2,
+        scale_view_list=[-0.05, 0, 0.08],
+        flip_bev_xy=[(False, False), (True, True)],  # (True, False), (False, True)
         transforms=[
             dict(type="DefaultFormatBundle3D", class_names=class_names, with_label=False),
             dict(type="Collect3D", keys=["img_inputs"]),  # 'points',
         ],
     )
 ]
+# ========================================================================================================
 
 # test_pipeline = [
 #     dict(type="PrepareImageInputs", data_config=data_config, sequential=True),
@@ -191,30 +229,31 @@ share_data_config = dict(
 test_data_config = dict(pipeline=test_pipeline, ann_file=data_root + "bevdetv2-nuscenes_infos_val.pkl")
 
 data = dict(
-    samples_per_gpu=4, # with 8 A100
+    samples_per_gpu=4,  # with 8 A100
     workers_per_gpu=8,
     train=dict(
-        type='CBGSDatasetOcc',
+        type="CBGSDatasetOcc",
         dataset=dict(
             data_root=data_root,
-            ann_file=data_root + 'bevdetv2-nuscenes_infos_train.pkl',
+            ann_file=data_root + "bevdetv2-nuscenes_infos_train.pkl",
             pipeline=train_pipeline,
             classes=class_names,
             test_mode=False,
             use_valid_flag=True,
             # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
-            box_type_3d='LiDAR')
+            box_type_3d="LiDAR",
         ),
+    ),
     val=test_data_config,
     test=test_data_config,
 )
 
 # for key in ['val', 'train', 'test']:
 #     data[key].update(share_data_config)
-for key in ['val', 'test']:
+for key in ["val", "test"]:
     data[key].update(share_data_config)
-data['train']['dataset'].update(share_data_config)
+data["train"]["dataset"].update(share_data_config)
 
 # Optimizer
 optimizer = dict(
@@ -246,7 +285,7 @@ custom_hooks = [
     ),
 ]
 
-auto_resume = True # 非常尴尬，因为失误只能从resume了
+auto_resume = True  # 非常尴尬，因为失误只能从resume了
 # load_from = "./ckpts/bevdet-InternImageB-LS_0.0001-epoch_19_ema.pth"
 # backbone_init_weight_after_load = True  # backbone用别的加载
 # fp16 = dict(loss_scale='dynamic')
