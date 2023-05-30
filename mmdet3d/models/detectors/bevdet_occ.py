@@ -85,8 +85,14 @@ class BEVStereo4DOCC(BEVStereo4D):
     def aug_test(self, points, img_metas, img, flip_xy, rescale=False, **kwargs):
         """
         img: [[Tensor, other Tensor], [...], ...]
+        flip_xy: 标识BEV特征的数据增强（图像数据增强在LSS投影到BEV时就拧回去了已经）
         """
-        B, NL, C,H,W = img[0][0].size()
+        B, NL, C, H, W = img[0][0].size()
+        # 在向下调用的函数中, img_metas 和 kwargs并没有被调用，因此只在batch上合并img和flip_xy 
+        cat_img = [None] * len(img[0]) # 将所有增强cat起来一起推理
+        for i in range()
+        cat_img[i] = torch.cat([x[i] for x in list_of_lists], dim=0)
+        exit()
         occ_score_total = torch.zeros([B, 200, 200, 16, 18]).to(img[0][0]) # FIXME 暂时固定
         for i, img_tmp in enumerate(img):
             img_feats, _, _ = self.extract_feat(
