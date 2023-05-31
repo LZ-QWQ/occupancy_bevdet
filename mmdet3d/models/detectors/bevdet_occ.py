@@ -8,35 +8,29 @@ from mmcv.cnn.bricks.conv_module import ConvModule
 from torch import nn
 import numpy as np
 
+import time
 
 @DETECTORS.register_module()
 class BEVStereo4DOCC(BEVStereo4D):
-
-    def __init__(self,
-                 loss_occ=None,
-                 out_dim=32,
-                 use_mask=False,
-                 num_classes=18,
-                 use_predicter=True,
-                 class_wise=False,
-                 **kwargs):
+    def __init__(self, loss_occ=None, out_dim=32, use_mask=False, num_classes=18, use_predicter=True, class_wise=False, **kwargs):
         super(BEVStereo4DOCC, self).__init__(**kwargs)
         self.out_dim = out_dim
         out_channels = out_dim if use_predicter else num_classes
         self.final_conv = ConvModule(
-                        self.img_view_transformer.out_channels,
-                        out_channels,
-                        kernel_size=3,
-                        stride=1,
-                        padding=1,
-                        bias=True,
-                        conv_cfg=dict(type='Conv3d'))
-        self.use_predicter =use_predicter
+            self.img_view_transformer.out_channels,
+            out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=True,
+            conv_cfg=dict(type="Conv3d"),
+        )
+        self.use_predicter = use_predicter
         if use_predicter:
             self.predicter = nn.Sequential(
-                nn.Linear(self.out_dim, self.out_dim*2),
+                nn.Linear(self.out_dim, self.out_dim * 2),
                 nn.Softplus(),
-                nn.Linear(self.out_dim*2, num_classes),
+                nn.Linear(self.out_dim * 2, num_classes),
             )
         self.pts_bbox_head = None
         self.use_mask = use_mask
@@ -45,52 +39,50 @@ class BEVStereo4DOCC(BEVStereo4D):
         self.class_wise = class_wise
         self.align_after_view_transfromation = False
 
-    def loss_single(self,voxel_semantics,mask_camera,preds):
+    def loss_single(self, voxel_semantics, mask_camera, preds):
         loss_ = dict()
-        voxel_semantics=voxel_semantics.long()
+        voxel_semantics = voxel_semantics.long()
         if self.use_mask:
             mask_camera = mask_camera.to(torch.int32)
-            voxel_semantics=voxel_semantics.reshape(-1)
-            preds=preds.reshape(-1,self.num_classes)
+            voxel_semantics = voxel_semantics.reshape(-1)
+            preds = preds.reshape(-1, self.num_classes)
             mask_camera = mask_camera.reshape(-1)
-            num_total_samples=mask_camera.sum()
-            loss_occ=self.loss_occ(preds,voxel_semantics,mask_camera, avg_factor=num_total_samples)
-            loss_['loss_occ'] = loss_occ
+            num_total_samples = mask_camera.sum()
+            loss_occ = self.loss_occ(preds, voxel_semantics, mask_camera, avg_factor=num_total_samples)
+            loss_["loss_occ"] = loss_occ
         else:
             voxel_semantics = voxel_semantics.reshape(-1)
             preds = preds.reshape(-1, self.num_classes)
-            loss_occ = self.loss_occ(preds, voxel_semantics,)
-            loss_['loss_occ'] = loss_occ
+            loss_occ = self.loss_occ(
+                preds,
+                voxel_semantics,
+            )
+            loss_["loss_occ"] = loss_occ
         return loss_
 
-    def simple_test(self,
-                    points,
-                    img_metas,
-                    img=None,
-                    rescale=False,
-                    **kwargs):
+    def simple_test(self, points, img_metas, img=None, rescale=False, **kwargs):
         """Test function without augmentaiton."""
-        img_feats, _, _ = self.extract_feat(
-            points, img=img, img_metas=img_metas, **kwargs)
+        img_feats, _, _ = self.extract_feat(points, img=img, img_metas=img_metas, **kwargs)
         occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1)
         # bncdhw->bnwhdc
         if self.use_predicter:
             occ_pred = self.predicter(occ_pred)
-        occ_score=occ_pred.softmax(-1)
-        occ_res=occ_score.argmax(-1)
-        # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
-        # return [occ_res]
-        return [occ_score.squeeze(dim=0).cpu().numpy().astype(np.float16)]
+        occ_score = occ_pred.softmax(-1)
+        occ_res = occ_score.argmax(-1)
+        occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+        return [occ_res]
+        # return [occ_score.squeeze(dim=0).cpu().numpy().astype(np.float16)]
 
     def aug_test(self, points, img_metas, img, flip_xy, rescale=False, **kwargs):
         """
         img: [[Tensor, other Tensor], [...], ...]
+        flip_xy: 标识BEV特征的数据增强（图像数据增强在LSS投影到BEV时就拧回去了已经）
         """
-        B, NL, C,H,W = img[0][0].size()
-        occ_score_total = torch.zeros([B, 200, 200, 16, 18]).to(img[0][0]) # FIXME 暂时固定
+        B, NL, C, H, W = img[0][0].size()
+
+        occ_score_total = torch.zeros([B, 200, 200, 16, 18]).to(img[0][0])  # FIXME 暂时固定
         for i, img_tmp in enumerate(img):
-            img_feats, _, _ = self.extract_feat(
-                None, img=img_tmp, img_metas=img_metas[i], **kwargs)
+            img_feats, _, _ = self.extract_feat(None, img=img_tmp, img_metas=img_metas[i], **kwargs)
             occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1)
             # bncdhw->bnwhdc
             if self.use_predicter:
@@ -101,23 +93,58 @@ class BEVStereo4DOCC(BEVStereo4D):
                 occ_pred = torch.flip(occ_pred, dims=[1])
             if flip_xy[i][1]:
                 occ_pred = torch.flip(occ_pred, dims=[2])
-            occ_score_total+=occ_pred
+            occ_score_total += occ_pred
 
-        occ_res=occ_score_total.argmax(-1)
+        occ_res = occ_score_total.argmax(-1)
         occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
         return [occ_res]
+    
+        # ===================== for batch inference ==========================
+        # aug_num = len(img[0])
+        # # 在向下调用的函数中, img_metas 和 kwargs并没有被调用，因此只在batch上合并img和flip_xy
+        # cat_img = [None] * aug_num  # 将所有增强cat起来一起推理
+        # for i in range(aug_num):
+        #     cat_img[i] = torch.cat([x[i] for x in img], dim=0)
+        # with torch.inference_mode():
+        #     img_feats, _, _ = self.extract_feat(None, img=cat_img, img_metas=None)  # **kwargs
+        #     occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1)
+        #     # bncdhw->bnwhdc
+        #     if self.use_predicter:
+        #         occ_pred = self.predicter(occ_pred)
+        # occ_pred = occ_pred.clone()  # fix for InferenceMode bug
+        # new_B = occ_pred.size(0)
+        # for i in range(new_B):
+        #     dims = []
+        #     if flip_xy[i][0]:
+        #         dims.append(0)
+        #     if flip_xy[i][1]:
+        #         dims.append(1)
+        #     if dims:  # 非空，用i取之后 WH 对应 01, i:i+1取之后对应12
+        #         # print("喵喵喵", occ_pred[i, ...].size())
+        #         occ_pred[i, ...] = torch.flip(occ_pred[i, ...], dims=dims)
 
-    def forward_train(self,
-                      points=None,
-                      img_metas=None,
-                      gt_bboxes_3d=None,
-                      gt_labels_3d=None,
-                      gt_labels=None,
-                      gt_bboxes=None,
-                      img_inputs=None,
-                      proposals=None,
-                      gt_bboxes_ignore=None,
-                      **kwargs):
+        # occ_score_total = torch.sum(occ_pred, dim=0, keepdim=True)
+        # # print(cat_img[0].size(), occ_score_total.size())
+        # occ_res = occ_score_total.argmax(-1)
+        # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+        # return [occ_res]
+
+        exit()
+
+
+    def forward_train(
+        self,
+        points=None,
+        img_metas=None,
+        gt_bboxes_3d=None,
+        gt_labels_3d=None,
+        gt_labels=None,
+        gt_bboxes=None,
+        img_inputs=None,
+        proposals=None,
+        gt_bboxes_ignore=None,
+        **kwargs
+    ):
         """Forward training function.
 
         Args:
@@ -143,18 +170,17 @@ class BEVStereo4DOCC(BEVStereo4D):
         Returns:
             dict: Losses of different branches.
         """
-        img_feats, pts_feats, depth = self.extract_feat(
-            points, img=img_inputs, img_metas=img_metas, **kwargs)
-        gt_depth = kwargs['gt_depth']
+        img_feats, pts_feats, depth = self.extract_feat(points, img=img_inputs, img_metas=img_metas, **kwargs)
+        gt_depth = kwargs["gt_depth"]
         losses = dict()
         loss_depth = self.img_view_transformer.get_depth_loss(gt_depth, depth)
-        losses['loss_depth'] = loss_depth
+        losses["loss_depth"] = loss_depth
 
-        occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1) # bncdhw->bnwhdc
+        occ_pred = self.final_conv(img_feats[0]).permute(0, 4, 3, 2, 1)  # bncdhw->bnwhdc
         if self.use_predicter:
             occ_pred = self.predicter(occ_pred)
-        voxel_semantics = kwargs['voxel_semantics']
-        mask_camera = kwargs['mask_camera']
+        voxel_semantics = kwargs["voxel_semantics"]
+        mask_camera = kwargs["mask_camera"]
         assert voxel_semantics.min() >= 0 and voxel_semantics.max() <= 17
         loss_occ = self.loss_single(voxel_semantics, mask_camera, occ_pred)
         losses.update(loss_occ)

@@ -19,20 +19,35 @@ from copy import deepcopy
 
 from .compose import Compose
 
+from typing import List, Tuple
+
+
 @PIPELINES.register_module()
 class OccTTA_TestPipline(object):
+    """
+    用于实现TTA，该pipline里嵌套了图像处理增强和BEV特征增强的pipline。
+    注意!!!用这玩意速度真的非常慢
+
+    flip_view_num: 六视角图像自由翻转多少次（6视角各自随机，可能会被seed给固定
+    scale_view_list: 六视角图像缩放
+    flip_bev_xy: BEV图像增强（暂时只支持x,y,xy三种翻转呢）
+    """
+
     def __init__(
         self,
         transforms,
         data_config,
-        flip=True,  # when True, 0.5 to flip for each image (different view)
-        flip_view_num=2,  # image aug 多少次
+        flip_view_num: int = 2,
+        scale_view_list: List[float] = [-0.05, 0, 0.08],
+        flip_bev_xy: List[Tuple[bool, bool]] = [(False, False), (True, True)],  # (True, False), (False, True)
     ):
         self.prepare_inputs = PrepareImageInputs_TTA(data_config, sequential=True)
         self.load_bevdepth = LoadAnnotationsBEVDepth_TTA()
         self.transforms = Compose(transforms)
 
         self.flip_view_num = flip_view_num
+        self.scale_view_list = scale_view_list
+        self.flip_bev_xy = flip_bev_xy
 
     def __call__(self, results):
         """Call function to augment common fields in results.
@@ -46,15 +61,16 @@ class OccTTA_TestPipline(object):
         """
         aug_data = []
 
-        for flip_xy in [(False, False), (True, False), (False, True), (True, True)]:  # (flip_dx, flip_dy)
-            for _ in range(self.flip_view_num):
-                _results = deepcopy(results)
-                _results = self.prepare_inputs(_results)
-                _results = self.load_bevdepth(_results, *flip_xy)
-                
-                data = self.transforms(_results)
-                data['flip_xy'] = flip_xy
-                aug_data.append(data)
+        for scale in self.scale_view_list:
+            for flip_xy in self.flip_bev_xy:  # (flip_dx, flip_dy)
+                for _ in range(self.flip_view_num):
+                    _results = deepcopy(results)
+                    _results = self.prepare_inputs(_results, scale=scale)
+                    _results = self.load_bevdepth(_results, *flip_xy)
+
+                    data = self.transforms(_results)
+                    data["flip_xy"] = flip_xy
+                    aug_data.append(data)
         # list of dict to dict of list
         aug_data_dict = {key: [] for key in aug_data[0]}
         for data in aug_data:
@@ -62,6 +78,7 @@ class OccTTA_TestPipline(object):
                 aug_data_dict[key].append(val)
         # print(aug_data_dict.keys())
         return aug_data_dict
+
 
 def mmlabNormalize(img):
     from mmcv.image.photometric import imnormalize
@@ -125,19 +142,17 @@ class PrepareImageInputs_TTA(object):
         cam_names = self.data_config["cams"]
         return cam_names
 
-    def sample_augmentation(self, H, W, flip=None, scale=None):
+    def sample_augmentation(self, H, W, random_flip=True, scale=None):
         fH, fW = self.data_config["input_size"]
         resize = float(fW) / float(W)
         if scale is not None:
             resize += scale
-        else:
-            resize += self.data_config.get("resize_test", 0.0)
         resize_dims = (int(W * resize), int(H * resize))
         newW, newH = resize_dims
         crop_h = int((1 - np.mean(self.data_config["crop_h"])) * newH) - fH
         crop_w = int(max(0, newW - fW) / 2)
         crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-        flip = np.random.choice([False, True])
+        flip = np.random.choice([False, True]) if random_flip else False
         rotate = 0
         return resize, resize_dims, crop, flip, rotate
 
@@ -160,7 +175,7 @@ class PrepareImageInputs_TTA(object):
         ego2global[:3, -1] = ego2global_tran
         return sensor2ego, ego2global
 
-    def get_inputs(self, results, flip=None, scale=None):
+    def get_inputs(self, results, random_flip=True, scale=None):
         imgs = []
         sensor2egos = []
         ego2globals = []
@@ -181,7 +196,7 @@ class PrepareImageInputs_TTA(object):
 
             sensor2ego, ego2global = self.get_sensor_transforms(results["curr"], cam_name)
             # image view augmentation (resize, crop, horizontal flip, rotate)
-            img_augs = self.sample_augmentation(H=img.height, W=img.width, flip=flip, scale=scale)
+            img_augs = self.sample_augmentation(H=img.height, W=img.width, random_flip=random_flip, scale=scale)
             resize, resize_dims, crop, flip, rotate = img_augs
             img, post_rot2, post_tran2 = self.img_transform(
                 img, post_rot, post_tran, resize=resize, resize_dims=resize_dims, crop=crop, flip=flip, rotate=rotate
@@ -231,8 +246,9 @@ class PrepareImageInputs_TTA(object):
         results["canvas"] = canvas
         return (imgs, sensor2egos, ego2globals, intrins, post_rots, post_trans)
 
-    def __call__(self, results):
-        results["img_inputs"] = self.get_inputs(results)
+    def __call__(self, results, scale=None):  # random_flip=True
+        # 不知道咋写好，先把random_flip强制为True
+        results["img_inputs"] = self.get_inputs(results, random_flip=True, scale=scale)
         return results
 
 
