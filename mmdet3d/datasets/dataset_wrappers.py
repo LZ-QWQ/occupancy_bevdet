@@ -116,7 +116,7 @@ class CBGSDatasetOcc(object):
         target_size = len(self.dataset) * 2 # 数据增强后的目标样本总数
         print("Target Data Size:", target_size)
 
-        for idx in range(len(self.dataset)):
+        for idx in range(len(self.dataset)): # 500 有为 len(self.dataset)
             if idx % 1000 == 0: 
                 print("- Sample", idx, "/", len(self.dataset))
             
