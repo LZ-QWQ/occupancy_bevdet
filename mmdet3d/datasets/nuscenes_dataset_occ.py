@@ -61,7 +61,7 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
         return input_dict
 
     # def __len__(self):
-    #     return 64
+    #     return 8
     
     def evaluate(self, occ_results, runner=None, show_dir=None, **eval_kwargs):
         self.occ_eval_metrics = Metric_mIoU(
@@ -157,5 +157,5 @@ class NuScenesDatasetOccpancy(NuScenesDataset):
             info = self.data_infos[index]
             sample_token = info['token']
             save_path=os.path.join(submission_prefix,'{}.npz'.format(sample_token))
-            np.savez_compressed(save_path,occ_pred.astype(np.float16))
+            np.savez_compressed(save_path,occ_pred.astype(np.uint8))
         print('\nFinished.')

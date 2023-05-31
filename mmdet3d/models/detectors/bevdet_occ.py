@@ -98,6 +98,7 @@ class BEVStereo4DOCC(BEVStereo4D):
         # occ_res = occ_score_total.argmax(-1)
         # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
 
+        # save for logit, for merge results.
         occ_score_total = occ_score_total.softmax(-1)
         occ_res = (occ_score_total*255).squeeze(dim=0).cpu().numpy().astype(np.uint8)
         return [occ_res]
