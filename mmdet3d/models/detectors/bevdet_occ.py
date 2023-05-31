@@ -95,8 +95,11 @@ class BEVStereo4DOCC(BEVStereo4D):
                 occ_pred = torch.flip(occ_pred, dims=[2])
             occ_score_total += occ_pred
 
-        occ_res = occ_score_total.argmax(-1)
-        occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+        # occ_res = occ_score_total.argmax(-1)
+        # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
+
+        occ_score_total = occ_score_total.softmax(-1)
+        occ_res = (occ_score_total*255).squeeze(dim=0).cpu().numpy().astype(np.uint8)
         return [occ_res]
     
         # ===================== for batch inference ==========================
@@ -128,9 +131,6 @@ class BEVStereo4DOCC(BEVStereo4D):
         # occ_res = occ_score_total.argmax(-1)
         # occ_res = occ_res.squeeze(dim=0).cpu().numpy().astype(np.uint8)
         # return [occ_res]
-
-        exit()
-
 
     def forward_train(
         self,
