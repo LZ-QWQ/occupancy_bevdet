@@ -1,1 +1,1 @@
-python ./tools/merge_results.py
+python ./tools/merge_results.py --merge_sub_path merge_single --submission_prefix commit/tta_672x1408_1

@@ -1,10 +1,14 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# add more data, on test
-# epoch1_ema ===> mIoU of 6008 samples: 46.27
-# epoch1_ema_tta ===> mIoU of 6008 samples: 47.0
+# epoch2_ema ===> mIoU of 6019 samples: 44.76
+# epoch4_ema ===> mIoU of 6019 samples: 45.5
+# epoch4_ema_tta ===> mIoU of 6019 samples: 46.08
 
-work_dir = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS-all_train"
+# epoch7_ema ===> mIoU of 6019 samples: 45.84
+# epoch8_ema ===> mIoU of 6019 samples: 45.87
+# epoch9_ema ===> mIoU of 6019 samples: 45.91
+
+work_dir = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS"
 find_unused_parameters = False
 
 _base_ = ["../_base_/datasets/nus-3d.py", "../_base_/default_runtime.py"]
@@ -127,14 +131,14 @@ model = dict(
         use_sigmoid=False,
         loss_weight=1.0,
         label_smoothing=0.0001,
-        class_weight=[1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 1.03, 0.49], # others ...... free
+        class_weight=[1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 0.66], # others ...... free
     ),
     use_mask=True,
 )
 
 # Data
 dataset_type = "NuScenesDatasetOccpancy"
-data_root = "data/nuscenes/"
+data_root = "data/nuscenes-test/"
 file_client_args = dict(backend="disk")
 
 bda_aug_conf = dict(rot_lim=(-0.0, 0.0), scale_lim=(1.0, 1.0), flip_dx_ratio=0.5, flip_dy_ratio=0.5)
@@ -152,7 +156,6 @@ train_pipeline = [
 test_pipeline = [
     dict(type="PrepareImageInputs", data_config=data_config, sequential=True),
     dict(type="LoadAnnotationsBEVDepth", bda_aug_conf=bda_aug_conf, classes=class_names, is_train=False),
-    dict(type="LoadPointsFromFile", coord_type="LIDAR", load_dim=5, use_dim=5, file_client_args=file_client_args),
     dict(
         type="MultiScaleFlipAug3D",
         img_scale=(1333, 800),
@@ -160,7 +163,7 @@ test_pipeline = [
         flip=False,
         transforms=[
             dict(type="DefaultFormatBundle3D", class_names=class_names, with_label=False),
-            dict(type="Collect3D", keys=["points", "img_inputs"]),
+            dict(type="Collect3D", keys=["img_inputs"]),
         ],
     ),
 ]
@@ -177,7 +180,7 @@ share_data_config = dict(
     multi_adj_frame_id_cfg=multi_adj_frame_id_cfg,
 )
 
-test_data_config = dict(pipeline=test_pipeline, ann_file=data_root + "bevdetv2-nuscenes_infos_val.pkl")
+test_data_config = dict(pipeline=test_pipeline, ann_file=data_root + "bevdetv2-nuscenes_infos_test.pkl")
 
 data = dict(
     samples_per_gpu=4, # with 8 A100
@@ -186,7 +189,7 @@ data = dict(
         type='CBGSDatasetOcc',
         dataset=dict(
             data_root=data_root,
-            ann_file=data_root + 'all_train.pkl',
+            ann_file=data_root + 'bevdetv2-nuscenes_infos_train.pkl',
             pipeline=train_pipeline,
             classes=class_names,
             test_mode=False,
@@ -208,7 +211,7 @@ data['train']['dataset'].update(share_data_config)
 # Optimizer
 optimizer = dict(
     type="AdamW",
-    lr=4e-5, # 2e-4
+    lr=2e-4,
     weight_decay=1e-2,
     constructor="CustomLayerDecayOptimizerConstructor",
     paramwise_cfg=dict(num_layers=33, layer_decay_rate=1.0, depths=[4, 4, 21, 4]),
@@ -235,8 +238,9 @@ custom_hooks = [
     ),
 ]
 
-load_from = "/data/work_dirs/bevdet-occ-intenimage_B_custom_decay-4d-stereo-672x1408-24e-labelsmooth_0.0001-load-CBGS/epoch_9_ema.pth"
-backbone_init_weight_after_load = False  # backbone用别的加载
+auto_resume = True # 非常尴尬，因为失误只能从resume了
+# load_from = "./ckpts/bevdet-InternImageB-LS_0.0001-epoch_19_ema.pth"
+# backbone_init_weight_after_load = True  # backbone用别的加载
 # fp16 = dict(loss_scale='dynamic')
 
-evaluation = dict(interval=999, pipeline=test_pipeline)  # eval_pipeline 
+evaluation = dict(interval=2, pipeline=test_pipeline)  # eval_pipeline , 这个地方真的需要pipline吗  # 貌似有bug，玩个屁....

@@ -5,5 +5,10 @@
 
 CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7" OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 bash ./tools/TTA_MINI_TEST.sh \
- ./ckpts/bevdet-InternImage-672*1408-epoch_9_ema.pth 8 \
- --format-only --eval-options 'submission_prefix=./results/merge_logit/tta_672x1408_epoch9_ema'
+ ./ckpts/all_epoch_2_ema.pth 8 \
+ --format-only --eval-options 'submission_prefix=./results/merge_logit/tta_672x1408_all_epoch2_ema'
+
+# CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7" OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+# bash ./tools/TTA_MINI_TEST.sh \
+#  ./ckpts/bevdet-InternImage-672*1408-epoch_9_ema.pth 8 \
+#  --format-only --eval-options 'submission_prefix=./results/merge_logit/tta_672x1408_epoch9_ema'
